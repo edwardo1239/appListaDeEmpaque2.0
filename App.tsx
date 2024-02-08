@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /**
  * Sample React Native App
  * https://github.com/facebook/react-native
@@ -5,113 +6,359 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
+import {Alert, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import {io} from 'socket.io-client';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+  LoteType,
+  cajasSinPalletType,
+  contenedoresInfoType,
+  itemType,
+  serverResponseType,
+  settingsType,
+} from './src/types';
+import Header from './src/components/Header';
+import Pallets from './src/components/Pallets';
+import Footer from './src/components/Footer';
+import Informacion from './src/components/Informacion';
+import PushNotification from 'react-native-push-notification';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const socket = io('http://192.168.0.172:3002/');
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+export const contenedoresContext = createContext<contenedoresInfoType[]>([
+  {
+    _id: 0,
+    pallets: {},
+    infoContenedor: {
+      nombreCliente: '',
+      tipoFruta: 'Limon',
+      tipoEmpaque: 'Caja',
+      cerrado: false,
+      desverdizado: false,
+    },
+  },
+]);
+export const loteSeleccionadoContext = createContext<LoteType>({
+  enf: '',
+  nombrePredio: '',
+  tipoFruta: 'Limon' as 'Limon' | 'Naranja',
+  _id: '',
+});
+export const palletSeleccionadoContext = createContext<number>(0);
+export const contenedorSeleccionadoContext = createContext<number>(0);
+export const itemSeleccionContext = createContext<string>('');
+export const cajasSinPalletContext = createContext<cajasSinPalletType[]>([]);
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [loteVaciando, setLoteVaciando] = useState<LoteType>({
+    enf: '',
+    nombrePredio: '',
+    tipoFruta: 'Limon' as 'Limon' | 'Naranja',
+    _id: '',
+  });
+  const [contenedoresProvider, setContenedoresProvider] = useState<contenedoresInfoType[]>([]);
+  const [numeroContenedor, setNumeroContenedor] = useState<number>(0);
+  const [loteSeleccionado, setLoteSeleccionado] = useState<LoteType>({
+    enf: '',
+    nombrePredio: '',
+    tipoFruta: 'Limon',
+    _id: '',
+  });
+  const [palletSeleccionado, setPalletSeleccionado] = useState<number>(0);
+  const [seleccion, setSeleccion] = useState<string>('');
+  const [cajasSinPallet, setCajasSinPallet] = useState([]);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  useEffect(() => {
+    const funcionAsyncrona = async () => {
+      socket.on('connect_error', function (err) {
+        Alert.alert(`connect_error due to ${err.message}`);
+        console.log(`connect_error due to ${err.message}`);
+      });
+      const request = {data: {action: 'obtenerDataContenedor'}, id: socket.id};
+
+      socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType): void => {
+        console.log(serverResponse.data);
+        if (serverResponse.status === 200) {
+          setContenedoresProvider(serverResponse.data.contenedores);
+          setCajasSinPallet(serverResponse.data.cajasSinPallet);
+        } else {
+          Alert.alert(`Error obteniendo contenedores: ${serverResponse.data}`);
+        }
+      });
+
+      //OBTENER ENF
+      const requestENF = {data: {action: 'obtenerLoteVaciando'}, id: socket.id};
+      const response: serverResponseType = await new Promise((resolve): void => {
+        socket.emit('listaDeEmpaque', requestENF, (serverResponse: serverResponseType) => {
+          if (serverResponse.status === 200) {
+            console.log(serverResponse);
+            resolve(serverResponse);
+          } else {
+            resolve({status: 400, data: {}});
+          }
+        });
+      });
+      if (response.status === 200) {
+        setLoteVaciando({
+          enf: response.data.enf,
+          nombrePredio: response.data.nombrePredio,
+          tipoFruta: response.data.tipoFruta,
+          _id: response.data.predioId,
+        });
+      } else {
+        Alert.alert(`${response.status} Error obteniendo Lote: ${response.data}`);
+      }
+
+      //Escucha si se vacia un lote
+      socket.on('vaciarLote', (data: any) => {
+        createChannel();
+        PushNotification.localNotification({
+          channelId: 'channel-id-1',
+          title: 'Nuevo predio vaciado', // (optional)
+          message: 'Se vaceo el predio ' + data.nombrePredio + '--' + data.enf, // (required)
+        });
+
+        setLoteVaciando({
+          enf: data.enf,
+          nombrePredio: data.nombrePredio,
+          tipoFruta: data.tipoFruta,
+          _id: data.predioId,
+        });
+      });
+
+      //
+      socket.on('listaEmpaqueDB', (data: any) => {
+        if (data.status === 200) {
+          setContenedoresProvider(() => [...data.data.contenedores]);
+          setCajasSinPallet(data.data.sinPallet);
+        } else {
+          Alert.alert(`Error obteniendo contenedores: ${data.data}`);
+        }
+      });
+    };
+    funcionAsyncrona();
+  }, []);
+
+  useEffect(() => {
+    setSeleccion('');
+  }, [palletSeleccionado]);
+
+  const createChannel = () => {
+    PushNotification.createChannel(
+      {
+        channelId: 'channel-id-1', // (requerido)
+        channelName: 'Mi canal', // (requerido)
+      },
+      created => console.log(`createChannel returned '${created}'`), // (opcional) callback devuelve si el canal fue creado, false significa que ya existía.
+    );
+  };
+
+  const guardarPalletSettings = (nContenedor: number, nPallet: number, settings: settingsType) => {
+    const request = {
+      data: {
+        data: {contenedor: nContenedor, pallet: nPallet, settings: settings},
+        action: 'guardarSettingsPallet',
+      },
+      id: socket.id,
+    };
+    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+      if (serverResponse.status !== 200) {
+        Alert.alert(`Error obteniendo contenedores: ${serverResponse.data}`);
+      } else {
+        Alert.alert('Guardado con exito');
+      }
+    });
+  };
+  const agregarItem = (item: itemType) => {
+    const request = {
+      data: {
+        data: {
+          contenedor: numeroContenedor,
+          pallet: palletSeleccionado,
+          item: item,
+        },
+        action: 'guardarItem',
+      },
+      id: socket.id,
+    };
+    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+      if (serverResponse.status !== 200) {
+        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
+      } else {
+        Alert.alert('Guardado con exito');
+      }
+    });
+  };
+  const eliminarItem = (item: string) => {
+    const request = {
+      data: {
+        data: {
+          contenedor: numeroContenedor,
+          pallet: palletSeleccionado,
+          item: item,
+        },
+        action: 'eliminarItem',
+      },
+      id: socket.id,
+    };
+    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+      if (serverResponse.status !== 200) {
+        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
+      } else {
+        Alert.alert('Guardado con exito');
+      }
+    });
+  };
+  const moverItems = (item: any) => {
+    const request = {
+      data: {
+        data: {
+          contenedor: numeroContenedor,
+          pallet: palletSeleccionado,
+          item: item,
+        },
+        action: 'moverItem',
+      },
+      id: socket.id,
+    };
+    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+      if (serverResponse.status !== 200) {
+        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
+      } else {
+        Alert.alert('Guardado con exito');
+      }
+    });
+  };
+  const restarItem = (item: any) => {
+    const request = {
+      data: {
+        data: {
+          contenedor: numeroContenedor,
+          pallet: palletSeleccionado,
+          item: item,
+        },
+        action: 'restarItem',
+      },
+      id: socket.id,
+    };
+    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+      if (serverResponse.status !== 200) {
+        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
+      } else {
+        Alert.alert('Guardado con exito');
+      }
+    });
+  };
+  const liberacionPallet = (item: any) => {
+    const request = {
+      data: {
+        data: {
+          contenedor: numeroContenedor,
+          pallet: palletSeleccionado,
+          item: item,
+        },
+        action: 'liberacionPallet',
+      },
+      id: socket.id,
+    };
+    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+      if (serverResponse.status !== 200) {
+        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
+      } else {
+        Alert.alert('Guardado con exito');
+      }
+    });
+  };
+  const cerrarContenedor = () => {
+    if (numeroContenedor === 0) {
+      return Alert.alert('Seleccione un contenedor');
+    }
+    const contenedor = contenedoresProvider.find(item => item._id === numeroContenedor);
+    if (!contenedor) {
+      return Alert.alert('Error');
+    }
+
+    let todosVerdaderos = Object.values(contenedor?.pallets).every(pallet =>
+      Object.values(pallet.listaLiberarPallet).every(val => val === true),
+    );
+    console.log(todosVerdaderos);
+    if (todosVerdaderos) {
+      const request = {
+        data: {
+          data: {
+            contenedor: numeroContenedor,
+          },
+          action: 'cerrarContenedor',
+        },
+        id: socket.id,
+      };
+      socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
+        if (serverResponse.status !== 200) {
+          Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
+        } else {
+          Alert.alert('Guardado con exito');
+        }
+      });
+    } else {
+      Alert.alert('Debe liberar todos los pallets');
+    }
+  };
+  const seleccionarLote = (item: LoteType): void => {
+    setLoteSeleccionado(item);
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ScrollView>
+      <SafeAreaView style={styles.container}>
+        <contenedoresContext.Provider value={contenedoresProvider}>
+          <loteSeleccionadoContext.Provider value={loteSeleccionado}>
+            <contenedorSeleccionadoContext.Provider value={numeroContenedor}>
+              <palletSeleccionadoContext.Provider value={palletSeleccionado}>
+                <itemSeleccionContext.Provider value={seleccion}>
+                  <cajasSinPalletContext.Provider value={cajasSinPallet}>
+                    <Header
+                      setNumeroContenedor={setNumeroContenedor}
+                      loteVaciando={loteVaciando}
+                      cerrarContenedor={cerrarContenedor}
+                      seleccionarLote={seleccionarLote}
+                    />
+                    <View style={styles.viewPallets}>
+                      <View>
+                        <Pallets
+                          setPalletSeleccionado={setPalletSeleccionado}
+                          guardarPalletSettings={guardarPalletSettings}
+                          agregarItem={agregarItem}
+                          liberacionPallet={liberacionPallet}
+                        />
+                      </View>
+                      <View style={{height: 600, minWidth: 400}}>
+                        <Informacion setSeleccion={setSeleccion} />
+                      </View>
+                    </View>
+                    <Footer
+                      agregarItem={agregarItem}
+                      eliminarItem={eliminarItem}
+                      moverItems={moverItems}
+                      restarItem={restarItem}
+                    />
+                  </cajasSinPalletContext.Provider>
+                </itemSeleccionContext.Provider>
+              </palletSeleccionadoContext.Provider>
+            </contenedorSeleccionadoContext.Provider>
+          </loteSeleccionadoContext.Provider>
+        </contenedoresContext.Provider>
+      </SafeAreaView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    backgroundColor: '#719DF5',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  viewPallets: {
+    display: 'flex',
+    flexDirection: 'row',
   },
 });
 

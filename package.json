@@ -1,6 +1,6 @@
 {
   "name": "ListaEmpaqueApp",
-  "version": "0.0.1",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -10,8 +10,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "@types/react-native-push-notification": "^8.1.4",
     "react": "18.2.0",
-    "react-native": "0.73.0"
+    "react-native": "0.73.1",
+    "react-native-push-notification": "^8.1.1",
+    "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
