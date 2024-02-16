@@ -39,9 +39,13 @@ export default function Pallets(props: propsType) {
   const [contenedorSeleccionado, setContenedorSeleccionado] =
     useState<contenedoresInfoType>({
       _id: 0,
+      numeroContenedor:0,
       pallets: {},
       infoContenedor: {
-        nombreCliente:'',
+        clienteInfo:{
+          CLIENTE:'',
+          _id:'',
+        },
         tipoFruta: 'Limon',
         tipoEmpaque: 'Caja',
         cerrado: false,

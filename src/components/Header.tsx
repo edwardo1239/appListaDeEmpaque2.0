@@ -127,13 +127,13 @@ export default function Header(props: propsType): JSX.Element {
                 <TouchableOpacity
                   onPress={() => {
                     setCliente(
-                      item._id + '-' + item.infoContenedor.nombreCliente,
+                      item.numeroContenedor + '-' + item.infoContenedor.clienteInfo.CLIENTE,
                     );
                     setModalVisible(false);
                     props.setNumeroContenedor(item._id);
                   }}>
                   <Text style={styles.textList}>
-                    {item._id + '-' + item.infoContenedor.nombreCliente}
+                    {item.numeroContenedor + '-' + item.infoContenedor.clienteInfo.CLIENTE}
                   </Text>
                 </TouchableOpacity>
               )}

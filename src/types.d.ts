@@ -4,6 +4,7 @@ export type LoteType ={
     nombrePredio: string;
     tipoFruta: 'Naranja' | 'Limon' | 'Mixto';
     _id: string
+    predio: string
   }
 
   export type serverResponseType = {
@@ -13,13 +14,17 @@ export type LoteType ={
   }
 
 export type contenedoresInfoType = {
+    numeroContenedor: number
     pallets: palletsType
     infoContenedor: infoContenedorType
     _id:number
 }
 
 type infoContenedorType = {
-    nombreCliente: string
+    clienteInfo: {
+      CLIENTE: string
+      _id:string
+    }
     tipoFruta: 'Limon' | 'Naranja' | 'Mixto'
     tipoEmpaque: 'Caja' | 'Saco'
     cerrado:boolean
@@ -65,7 +70,8 @@ export type listaLiberacionPalletType = {
 }
 
 export type itemType =  {
-    id: stringq
+    id: string
+    enf: string
     nombre: string;
     predioId: string
     cajas: number;
