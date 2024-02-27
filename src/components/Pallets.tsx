@@ -40,7 +40,7 @@ export default function Pallets(props: propsType) {
     useState<contenedoresInfoType>({
       _id: 0,
       numeroContenedor:0,
-      pallets: {},
+      pallets: [],
       infoContenedor: {
         clienteInfo:{
           CLIENTE:'',
@@ -70,12 +70,12 @@ export default function Pallets(props: propsType) {
   return (
     <View
       style={
-        numeroContenedor === 0 ? {minHeight: 525, width: 925} : styles.container
+        numeroContenedor === -1 ? {minHeight: 525, width: 925} : styles.container
       }>
-      {Object.keys(contenedorSeleccionado.pallets).map(pallet => (
+      {contenedorSeleccionado.pallets.map((pallet, index) => (
         <PalletComponent
-          pallet={pallet}
-          key={pallet}
+          pallet={index}
+          key={String(index )}
           setPalletSeleccionado={props.setPalletSeleccionado}
           openPalletSettings={openPalletSettings}
         />

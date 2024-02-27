@@ -21,7 +21,7 @@ import {contenedoresInfoType, itemType} from '../types';
 
 type propsType = {
   agregarItem: (item: itemType) => void;
-  eliminarItem: (item: string) => void;
+  eliminarItem: (item: number) => void;
   moverItems: (item: any) => void;
   restarItem: (item: any) => void;
 };
@@ -51,7 +51,7 @@ export default function Footer(props: propsType) {
       }
       if (cajas <= 0) {return Alert.alert('Ingrese el numero de cajas');}
       if (loteActual.enf === '') {return Alert.alert('Seleccione un lote');}
-      if (pallet === 0) {return Alert.alert('Pallet no permitido');}
+      if (pallet === -1) {return Alert.alert('Pallet no permitido');}
       if (
         contenedor?.infoContenedor.tipoFruta !== 'Mixto' &&
          contenedor?.infoContenedor.tipoFruta !== loteActual.tipoFruta
@@ -62,9 +62,7 @@ export default function Footer(props: propsType) {
       if (contenedor.pallets[pallet].settings.calibre === 0) {return Alert.alert('Error configure el pallet');}
       if (contenedor.pallets[pallet].settings.calidad === 0) {return Alert.alert('Error configure el pallet');}
       const item: itemType = {
-        id: loteActual.enf,
-        nombre: loteActual.nombrePredio,
-        predioId: loteActual._id,
+        _id: loteActual._id,
         cajas: cajas,
         tipoCaja: contenedor?.pallets[pallet].settings.tipoCaja,
         calibre: contenedor?.pallets[pallet].settings.calibre,
@@ -84,8 +82,8 @@ export default function Footer(props: propsType) {
     }
     if (cajas <= 0) {return Alert.alert('Ingrese el numero de cajas');}
     if (loteActual.enf === '') {return Alert.alert('Seleccione un lote');}
-    if (pallet === 0) {return Alert.alert('Pallet no permitido');}
-    const cajasActual = cajas - Number(contenedor?.pallets[pallet].cajasTotal);
+    if (pallet === -1) {return Alert.alert('Pallet no permitido');}
+    const cajasActual = cajas - Number(contenedor?.pallets[pallet].EF1.reduce((acu, item) => acu + item.cajas,0));
     if (cajasActual < 1) {return Alert.alert('Error en el numero de cajas');}
     if (
       contenedor?.infoContenedor.tipoFruta !== 'Mixto' &&
@@ -98,9 +96,7 @@ export default function Footer(props: propsType) {
     if (contenedor.pallets[pallet].settings.calidad === 0) {return Alert.alert('Error configure el pallet');}
 
     const item: itemType = {
-      id: loteActual.enf,
-      nombre: loteActual.nombrePredio,
-      predioId: loteActual._id,
+      _id: loteActual._id,
       cajas: cajasActual,
       tipoCaja: contenedor?.pallets[pallet].settings.tipoCaja,
       calibre: contenedor?.pallets[pallet].settings.calibre,
@@ -116,13 +112,13 @@ export default function Footer(props: propsType) {
       return Alert.alert('Ingrese el numero de cajas');
     }
     if (loteActual.enf === '') {return Alert.alert('Seleccione un lote');}
-    if (seleccion === '')
+    if (seleccion === -1)
       {return Alert.alert('Seleccione el item que desea eliminar');}
     props.eliminarItem(seleccion);
     setCajas(0);
   };
   const ClickOpenMoverCajas = () => {
-    if (seleccion === '')
+    if (seleccion === -1)
       {return Alert.alert('Seleccione un item que desee mover a otro pallet');}
     setOpenModal(true);
   };
@@ -139,7 +135,7 @@ export default function Footer(props: propsType) {
     ) {
       return Alert.alert('Error en el pallet');
     }
-    if (pallet === 0) {
+    if (pallet === -1) {
       const itemCaja = cajasSinPallet[Number(seleccion)];
       if (itemCaja) {
         if (Number(entradaModalCajas) > Number(itemCaja)) {
@@ -147,9 +143,7 @@ export default function Footer(props: propsType) {
         }
       }
     } else {
-      const itemCaja = contenedor?.pallets[pallet].EF1.find(
-        item => item._id === seleccion,
-      )?.cajas;
+      const itemCaja = contenedor?.pallets[pallet].EF1[seleccion].cajas;
       if (itemCaja) {
         if (Number(entradaModalCajas) > itemCaja) {
           return Alert.alert('Error en elnumero de cajas');
@@ -183,7 +177,7 @@ export default function Footer(props: propsType) {
       }
     } else {
       const itemCaja = contenedor?.pallets[pallet].EF1.find(
-        item => item._id === seleccion,
+        item => typeof item.lote === 'object' && item.lote._id === seleccion,
       )?.cajas;
       if (itemCaja) {
         if (Number(cajas) > itemCaja) {

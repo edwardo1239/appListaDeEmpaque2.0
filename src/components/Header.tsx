@@ -93,8 +93,8 @@ export default function Header(props: propsType): JSX.Element {
           <Text>Cajas Total:</Text>
           <Text>
             {contenedor &&
-              Object.keys(contenedor.pallets).reduce(
-                (acu, pallet) => (acu += contenedor.pallets[pallet].cajasTotal),
+              contenedor.pallets.reduce(
+                (acu, pallet) => acu + pallet.EF1.reduce((acu2, lote) => acu2 + lote.cajas, 0),
                 0,
               )}
           </Text>

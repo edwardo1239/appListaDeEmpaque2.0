@@ -36,7 +36,7 @@ export default function SettingsEstibaLimon(props: modalLimonTypes) {
     const loteSeleccionado = useContext(loteSeleccionadoContext);
 
   useEffect(() => {
-    if (pallet !== 0 && contenedor) {
+    if (pallet !== -1 && contenedor) {
 
         const infoLiberacion = contenedor.pallets[pallet].listaLiberarPallet;
 

@@ -40,7 +40,7 @@ export default function SettingPalletLimon(props: modalLimonTypes) {
 
   useEffect(() => {
 
-    if (pallet !== 0 && contenedor) {
+    if (pallet !== -1 && contenedor) {
 
       const infoLiberacion = contenedor.pallets[pallet].listaLiberarPallet;
 

@@ -10,7 +10,7 @@ import {
 } from '../../App';
 
 type propsType = {
-  pallet: string;
+  pallet: number;
   setPalletSeleccionado: (data: number) => void;
   openPalletSettings: () => void;
 };
@@ -64,8 +64,8 @@ export default function (props: propsType) {
         </View>
         <View style={{marginLeft: 25}}>
           <Text style={{fontSize: 50, fontWeight: 'bold'}}>
-            {contenedores?.pallets[props.pallet] &&
-              contenedores.pallets[props.pallet].cajasTotal}
+            {contenedores?.pallets[props.pallet] && contenedores.pallets[props.pallet].EF1 &&
+              contenedores.pallets[props.pallet].EF1.reduce((acu, item) => acu + item.cajas, 0)}
           </Text>
         </View>
       </TouchableOpacity>
@@ -75,7 +75,7 @@ export default function (props: propsType) {
           : contenedores?.infoContenedor.tipoEmpaque === 'Saco'
           ? 'Estiba'
           : null}{' '}
-        {props.pallet === '0' ? 'sin pallet' : props.pallet}
+        {props.pallet === -1 ? 'sin pallet' : props.pallet + 1}
       </Text>
     </View>
   );

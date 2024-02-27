@@ -19,8 +19,8 @@ export default function CajasSinPalletComponent(props: propsType) {
   return (
     <View style={styles.palletContainer}>
       <TouchableOpacity
-        style={palletSeleccionado === 0 ? styles.palletsPress : styles.palletsButons}
-        onPress={() => props.setPalletSeleccionado(0)}
+        style={palletSeleccionado === -1 ? styles.palletsPress : styles.palletsButons}
+        onPress={() => props.setPalletSeleccionado(-1)}
         onLongPress={() => props.setOpenModalSinPallet(true)}>
         <View
           style={{

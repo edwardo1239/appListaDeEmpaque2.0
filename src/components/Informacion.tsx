@@ -11,7 +11,7 @@ import {
 } from '../../App';
 
 type propsType = {
-  setSeleccion: (data: string) => void;
+  setSeleccion: (data: number) => void;
 };
 
 function Informacion(props: propsType) {
@@ -23,30 +23,30 @@ function Informacion(props: propsType) {
 
   return (
     <>
-      {pallet === 0 ? (
+      {pallet === -1 ? (
         <ScrollView style={styles.scrollStyle} nestedScrollEnabled={true}>
-          {Array.isArray(cajasSinPallet) && (pallet === 0) === true
+          {Array.isArray(cajasSinPallet) && (pallet === -1) === true
             ? cajasSinPallet.map((item, index) => (
                 <View style={styles.container} key={index}>
                   <View style={styles.containerHeader}>
-                    <View key={item + 'view2'}>
-                      <Text style={styles.textHeaders}>{item.id}</Text>
+                    <View key={index + 'view2'}>
+                      <Text style={styles.textHeaders}>{item.lote.enf}</Text>
                     </View>
-                    <View key={item + 'view3'}>
-                      <View style={{display: 'flex', flexDirection: 'row'}} key={item + 'view4'}>
-                        <Text key={item + 'nombrPredioHeader'} style={styles.textHeaders}>
+                    <View key={index + 'view3'}>
+                      <View style={{display: 'flex', flexDirection: 'row'}} key={index + 'view4'}>
+                        <Text key={index + 'nombrPredioHeader'} style={styles.textHeaders}>
                           Nombre Predio:{' '}
                         </Text>
-                        <Text key={item + 'nombrPredio'} style={styles.textHeaders}>
-                          {item.nombre}
+                        <Text key={index + 'nombrPredio'} style={styles.textHeaders}>
+                          {item.lote.predio}
                         </Text>
                       </View>
                     </View>
                   </View>
 
                   <TouchableOpacity
-                    style={seleccion === String(index) ? styles.touchablePress : styles.touchable}
-                    onPress={() => props.setSeleccion(String(index))}>
+                    style={seleccion === (index) ? styles.touchablePress : styles.touchable}
+                    onPress={() => props.setSeleccion((index))}>
                     <View style={{display: 'flex', flexDirection: 'row'}}>
                       <Text>
                         {contenedor && contenedor.infoContenedor.tipoEmpaque === 'Caja' ? 'No. Cajas:' : 'No. Sacos'}{' '}
@@ -76,28 +76,28 @@ function Informacion(props: propsType) {
         </ScrollView>
       ) : (
         <ScrollView style={styles.scrollStyle} nestedScrollEnabled={true}>
-          {contenedor && (pallet !== 0) === true
-            ? contenedor.pallets[pallet].EF1.map(item => (
-                <View style={styles.container} key={item._id}>
+          {contenedor && (pallet !== -1) === true
+            ? contenedor.pallets[pallet].EF1.map((item, index) => (
+              typeof item.lote === 'object' &&
+                <View style={styles.container} key={index + index}>
                   <View style={styles.containerHeader}>
-                    <View key={item + 'view2'}>
-                      <Text style={styles.textHeaders}>{item.id}</Text>
+                    <View key={index + 'view2'}>
+                      <Text style={styles.textHeaders}>{item.lote.enf}</Text>
                     </View>
-                    <View key={item + 'view3'}>
-                      <View style={{display: 'flex', flexDirection: 'row'}} key={item + 'view4'}>
-                        <Text key={item + 'nombrPredioHeader'} style={styles.textHeaders}>
+                    <View key={item.lote.enf + 'view3'}>
+                      <View style={{display: 'flex', flexDirection: 'row'}} key={index + 'view4'}>
+                        <Text key={index + 'nombrPredioHeader'} style={styles.textHeaders}>
                           Nombre Predio:{' '}
                         </Text>
-                        <Text key={item + 'nombrPredio'} style={styles.textHeaders}>
-                          {item.nombre}
+                        <Text key={index + 'nombrPredio'} style={styles.textHeaders}>
+                          {item.lote.predio}
                         </Text>
                       </View>
                     </View>
                   </View>
-
                   <TouchableOpacity
-                    style={seleccion === item._id ? styles.touchablePress : styles.touchable}
-                    onPress={() => props.setSeleccion(item._id)}>
+                    style={seleccion === index ? styles.touchablePress : styles.touchable}
+                    onPress={() => typeof item.lote === 'object' &&  props.setSeleccion(index)}>
                     <View style={{display: 'flex', flexDirection: 'row'}}>
                       <Text>{contenedor.infoContenedor.tipoEmpaque === 'Caja' ? 'No. Cajas:' : 'No. Sacos'} </Text>
                       <Text>{item.cajas}</Text>

@@ -55,8 +55,7 @@ export default function SettingsCajasSinPalletNaranja(props: modalTypes) {
       ) {
 
         const item: itemType = {
-            id: loteSeleccionado.enf,
-            nombre: loteSeleccionado.nombrePredio,
+            _id: loteSeleccionado._id,
             cajas: Number(cajas),
             tipoCaja: radioButtonTipoCaja,
             calibre: Number(radioButtonCalibre),

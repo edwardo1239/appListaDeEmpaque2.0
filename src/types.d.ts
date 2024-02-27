@@ -10,12 +10,11 @@ export type LoteType ={
   export type serverResponseType = {
     status:number
     data:any
-    sinPallet?:any
   }
 
 export type contenedoresInfoType = {
     numeroContenedor: number
-    pallets: palletsType
+    pallets: palletType[]
     infoContenedor: infoContenedorType
     _id:number
 }
@@ -33,14 +32,10 @@ type infoContenedorType = {
 
 
 
-export type palletsType = {
-  [key: string]: palletType
-}
 
 export type palletType = {
   settings: settingsType
   EF1: EF1Type[]
-  cajasTotal:number
   listaLiberarPallet: listaLiberacionPalletType
 }
 
@@ -51,14 +46,16 @@ export type settingsType = {
 }
 
 export type EF1Type = {
-  id:string
-  nombre:string
+  lote: {
+    _id: string
+    enf: string
+    predio:string
+  } | string
   cajas: number
   tipoCaja: string
   calibre: number
   calidad: number
   fecha: string
-  _id:string
 }
 
 export type listaLiberacionPalletType = {
@@ -70,10 +67,7 @@ export type listaLiberacionPalletType = {
 }
 
 export type itemType =  {
-    id: string
-    enf: string
-    nombre: string;
-    predioId: string
+    _id: string
     cajas: number;
     tipoCaja: string | undefined;
     calibre: number | undefined;
@@ -82,11 +76,14 @@ export type itemType =  {
 }
 
 export type cajasSinPalletType = {
-  cajas:number
+  lote: {
+    _id: string
+    enf: string
+    predio:string
+  }
+  cajas: number
+  tipoCaja: string
   calibre: number
   calidad: number
   fecha: string
-  id:string
-  nombre:string
-  tipoCaja:string
 }
