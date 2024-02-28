@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable react-native/no-inline-styles */
 /**
  * Sample React Native App
@@ -22,7 +23,7 @@ import Pallets from './src/components/Pallets';
 import Footer from './src/components/Footer';
 import Informacion from './src/components/Informacion';
 import PushNotification from 'react-native-push-notification';
-import {agregar_item, eliminar_item, guardar_pallets_settings, request_lista_empaque} from './src/functions/request';
+import {agregar_item, eliminar_item, guardar_pallets_settings, mover_item, request_lista_empaque} from './src/functions/request';
 
 const socket = io('http://192.168.0.172:3004/');
 
@@ -52,7 +53,7 @@ export const loteSeleccionadoContext = createContext<LoteType>({
 });
 export const palletSeleccionadoContext = createContext<number>(-1);
 export const contenedorSeleccionadoContext = createContext<number>(-1);
-export const itemSeleccionContext = createContext<number>(-1);
+export const itemSeleccionContext = createContext<number[]>([]);
 export const cajasSinPalletContext = createContext<cajasSinPalletType[]>([]);
 
 function App(): React.JSX.Element {
@@ -64,7 +65,7 @@ function App(): React.JSX.Element {
     predio: '',
   });
   const [contenedoresProvider, setContenedoresProvider] = useState<contenedoresInfoType[]>([]);
-  const [numeroContenedor, setNumeroContenedor] = useState<number>(0);
+  const [numeroContenedor, setNumeroContenedor] = useState<number>(-1);
   const [loteSeleccionado, setLoteSeleccionado] = useState<LoteType>({
     enf: '',
     nombrePredio: '',
@@ -73,7 +74,7 @@ function App(): React.JSX.Element {
     predio: '',
   });
   const [palletSeleccionado, setPalletSeleccionado] = useState<number>(-1);
-  const [seleccion, setSeleccion] = useState<number>(-1);
+  const [seleccion, setSeleccion] = useState<number[]>([]);
   const [cajasSinPallet, setCajasSinPallet] = useState([]);
 
   useEffect(() => {
@@ -130,7 +131,7 @@ function App(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    setSeleccion(-1);
+    setSeleccion([]);
   }, [palletSeleccionado]);
 
   const createChannel = () => {
@@ -181,29 +182,10 @@ function App(): React.JSX.Element {
   const eliminarItem = async () => {
     await eliminar_item(socket, numeroContenedor, palletSeleccionado, seleccion);
     await obtener_data_servidor();
+    setSeleccion([]);
   };
   const moverItems = (item: any) => {
-    console.log(item);
-    const request: any = {
-      query: 'proceso',
-      collection: 'contenedores',
-      action: 'agregarItemListaEmpaque',
-      data: {
-        contenedor: {
-          _id: numeroContenedor,
-          item: item,
-          pallet: palletSeleccionado,
-          element: 'moverEF1',
-        },
-      },
-    };
-    // socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
-    //   if (serverResponse.status !== 200) {
-    //     Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
-    //   } else {
-    //     Alert.alert('Guardado con exito');
-    //   }
-    // });
+    mover_item(socket, item, numeroContenedor, palletSeleccionado, seleccion);
   };
   const restarItem = (item: any) => {
     const request = {

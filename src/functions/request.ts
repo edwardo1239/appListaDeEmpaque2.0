@@ -95,7 +95,7 @@ export const agregar_item = async (socket: Socket, item: itemType, numeroContene
 });
 };
 
-export const eliminar_item = async (socket: Socket, numeroContenedor:number, palletSeleccionado:number, seleccion:number) => {
+export const eliminar_item = async (socket: Socket, numeroContenedor:number, palletSeleccionado:number, seleccion:number[]) => {
   let element = 'eliminarItem';
   if (palletSeleccionado === -1){
     element = 'eliminatItemSinPallet';
@@ -124,6 +124,42 @@ export const eliminar_item = async (socket: Socket, numeroContenedor:number, pal
 });
 };
 
-export const mover_item = async (socket: Socket, item:any) => {
-  
-}
+export const mover_item = async (socket: Socket, item:any, numeroContenedor: number, palletSeleccionado:number, seleccion:number[]) => {
+  let action;
+  // console.log(numeroContenedor);
+  // console.log(palletSeleccionado);
+  //Request para mover un item desde un pallet contenedor a otro pallet contenedor
+  if (item.type === 'item' && palletSeleccionado !== -1 && item.pallet !== -1 && item.contenedor !== -1){
+    action = 'moverItemEntreContenedores';
+  } else {
+    action = '';
+  }
+  const request = {
+    query: 'proceso',
+    collection: 'contenedores',
+    action: action,
+    data: {
+      contenedor1: {
+        _id: numeroContenedor,
+        index: seleccion[0],
+        pallet: palletSeleccionado,
+      },
+      contenedor2: {
+        _id: item.contenedor,
+        pallet: item.pallet,
+        cajas: item.numeroCajas,
+      },
+    },
+  };
+  console.log(request);
+
+  return new Promise((resolve, reject) => {
+    try {
+        socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+            resolve(serverResponse.status);
+        });
+    } catch (e) {
+        reject(401);
+    }
+});
+};
