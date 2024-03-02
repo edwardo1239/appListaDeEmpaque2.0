@@ -23,7 +23,8 @@ import Pallets from './src/components/Pallets';
 import Footer from './src/components/Footer';
 import Informacion from './src/components/Informacion';
 import PushNotification from 'react-native-push-notification';
-import {agregar_item, eliminar_item, guardar_pallets_settings, mover_item, request_lista_empaque} from './src/functions/request';
+import {
+  agregar_item, eliminar_item, guardar_pallets_settings, liberacion_pallet, mover_item, request_lista_empaque, restar_item} from './src/functions/request';
 
 const socket = io('http://192.168.0.172:3004/');
 
@@ -84,30 +85,11 @@ function App(): React.JSX.Element {
         console.log(`connect_error due to ${err.message}`);
       });
       // se obtienen los contendores
-      const listaEmpaque: serverResponseType = await request_lista_empaque(socket);
-      if (listaEmpaque && listaEmpaque.status === 200) {
-        setContenedoresProvider(listaEmpaque.data);
-      } else {
-        Alert.alert(`Error obteniendo contenedores: ${listaEmpaque.data}`);
-      }
-
+      await obtener_data_servidor_contenedores();
       //OBTENER ENF
-      const requestENF = {data: {collection: 'variablesListaEmpaque', action: 'obtenerEF1ListaEmpaque'}};
-      socket.emit('listaEmpaque', requestENF, (responseServer: LoteType) => {
-        setLoteVaciando({
-          enf: responseServer.enf,
-          nombrePredio: responseServer.nombrePredio,
-          tipoFruta: responseServer.tipoFruta,
-          _id: responseServer._id,
-          predio: responseServer.predio,
-        });
-      });
-
+      await obtener_data_enf();
       //obtener cajas sin pallet
-      const requestCajas = {data: {collection: 'variablesListaEmpaque', action: 'obtenerCajasSinPallet'}};
-      socket.emit('listaEmpaque', requestCajas, (responseServer: []) => {
-        setCajasSinPallet(responseServer);
-      });
+      await obtener_cajas_sin_pallet();
 
       //Escucha si se vacia un lote
       socket.on('vaciarLote', (data: any) => {
@@ -143,29 +125,56 @@ function App(): React.JSX.Element {
       created => console.log(`createChannel returned '${created}'`), // (opcional) callback devuelve si el canal fue creado, false significa que ya existía.
     );
   };
-  const obtener_data_servidor = async () => {
+  const obtener_data_servidor_contenedores = async () => {
     try {
-      if (palletSeleccionado === -1) {
-        const requestCajas = {data: {collection: 'variablesListaEmpaque', action: 'obtenerCajasSinPallet'}};
-        socket.emit('listaEmpaque', requestCajas, (responseServer: []) => {
-          setCajasSinPallet(responseServer);
-          Alert.alert('Guardado con exito');
-        });
+      const listaEmpaque: serverResponseType = await request_lista_empaque(socket);
+      if (listaEmpaque && listaEmpaque.status === 200) {
+        setContenedoresProvider(listaEmpaque.data);
       } else {
-        const listaEmpaque: serverResponseType = await request_lista_empaque(socket);
-        if (listaEmpaque && listaEmpaque.status === 200) {
-          setContenedoresProvider(listaEmpaque.data);
-          Alert.alert('Guardado con exito');
-        } else {
-          Alert.alert(`Error obteniendo contenedores: ${listaEmpaque.data}`);
-        }
+        Alert.alert(`Error obteniendo contenedores: ${listaEmpaque.data}`);
       }
     } catch {
       Alert.alert('Error obteniendo datos del servidor');
     }
   };
-  const guardarPalletSettings = async (idContenedor: number, nPallet: number, settings: settingsType) => {
-    const palletSettings = await guardar_pallets_settings(socket, idContenedor, nPallet, settings);
+  const obtener_data_enf = async () => {
+    try {
+         const requestENF = {data: {collection: 'variablesListaEmpaque', action: 'obtenerEF1ListaEmpaque'}};
+         socket.emit('listaEmpaque', requestENF, (responseServer: LoteType) => {
+           if (responseServer.status === 200){
+             setLoteVaciando({
+               enf: responseServer.enf,
+               nombrePredio: responseServer.nombrePredio,
+               tipoFruta: responseServer.tipoFruta,
+               _id: responseServer._id,
+               predio: responseServer.predio,
+             });
+           } else {
+             Alert.alert(`Error obteniendo el predio vaciado: Code ${responseServer.status}, error: ${responseServer.message}`);
+           }
+         });
+    } catch (e){
+      Alert.alert('Error obteniendo datos de cajas sin pallet');
+    }
+  };
+  const obtener_cajas_sin_pallet = async () => {
+    try {
+      const requestCajas = {data: {collection: 'variablesListaEmpaque', action: 'obtenerCajasSinPallet'}};
+      socket.emit('listaEmpaque', requestCajas, (responseServer: {status:number, message:string, data:[]}) => {
+        if (responseServer.status === 200){
+          console.log(responseServer.data);
+          setCajasSinPallet(responseServer.data);
+        } else {
+          Alert.alert(`Error obteniendo las cajas sin pallet, code: ${responseServer.status} error: ${responseServer.message}`);
+        }
+      });
+    } catch (e){
+      Alert.alert('Error obteniendo las cajas sin pallet');
+    }
+  };
+  const guardarPalletSettings = async ( settings: settingsType) => {
+  try {
+    const palletSettings = await guardar_pallets_settings(socket, numeroContenedor, palletSeleccionado, settings);
     if (palletSettings === 200) {
       const listaEmpaque: serverResponseType = await request_lista_empaque(socket);
       if (listaEmpaque && listaEmpaque.status === 200) {
@@ -174,58 +183,82 @@ function App(): React.JSX.Element {
         Alert.alert(`Error obteniendo contenedores: ${listaEmpaque.data}`);
       }
     }
+  } catch (e: any) {
+    Alert.alert(`Error guardando la configuracion de pallet ${e.status}: ${e.message}`);
+  }
   };
   const agregarItem = async (item: itemType) => {
-    await agregar_item(socket, item, numeroContenedor, palletSeleccionado);
-    await obtener_data_servidor();
+    try {
+    const response = await agregar_item(socket, item, numeroContenedor, palletSeleccionado);
+    if (palletSeleccionado === -1){
+      await obtener_cajas_sin_pallet();
+    } else {
+      await obtener_data_servidor_contenedores();
+    }
+    if (response === 200) {Alert.alert('Guardado con exito');}
+    } catch (e: any) {
+      Alert.alert(`Error agregando el item code ${e.status}: ${e.message}`);
+    }
   };
   const eliminarItem = async () => {
-    await eliminar_item(socket, numeroContenedor, palletSeleccionado, seleccion);
-    await obtener_data_servidor();
+    try {
+      const response = await eliminar_item(socket, numeroContenedor, palletSeleccionado, seleccion);
+      if (palletSeleccionado === -1){
+        await obtener_cajas_sin_pallet();
+      } else {
+        await obtener_data_servidor_contenedores();
+      }
+      setSeleccion([]);
+      if (response === 200) {
+        Alert.alert('Eliminado con exito');
+      }
+    } catch (e: any) {
+      Alert.alert(`Error eliminando el item code ${e.status}: ${e.message}`);
+    }
+  };
+  const moverItems = async (item: any) => {
+    try {
+      const response = await mover_item(socket, item, numeroContenedor, palletSeleccionado, seleccion);
+      await obtener_data_servidor_contenedores();
+      await obtener_cajas_sin_pallet();
+      setSeleccion([]);
+      if (response === 200) {
+        Alert.alert('Datos movidos con exito');
+      }
+    } catch (e: any) {
+      Alert.alert(`Error moviendo los items code ${e.status}: ${e.message}`);
+    }
+  };
+  const restarItem = async (item: any) => {
+   try {
+    const response = await restar_item(socket, item, numeroContenedor, palletSeleccionado, seleccion);
+    if (palletSeleccionado === -1){
+      await obtener_cajas_sin_pallet();
+    } else {
+      await obtener_data_servidor_contenedores();
+    }
+    if (response === 200){
+      Alert.alert('Cajas restadas con exito');
+    }
     setSeleccion([]);
+   } catch (e: any) {
+      Alert.alert(`Error restando item code ${e.status}: ${e.message}`);
+   }
   };
-  const moverItems = (item: any) => {
-    mover_item(socket, item, numeroContenedor, palletSeleccionado, seleccion);
-  };
-  const restarItem = (item: any) => {
-    const request = {
-      data: {
-        data: {
-          contenedor: numeroContenedor,
-          pallet: palletSeleccionado,
-          item: item,
-        },
-        action: 'restarItem',
-      },
-      id: socket.id,
-    };
-    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
-      if (serverResponse.status !== 200) {
-        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
-      } else {
-        Alert.alert('Guardado con exito');
+  const liberacionPallet = async (item: any) => {
+    try {
+      const palletSettings = await liberacion_pallet(socket, numeroContenedor, palletSeleccionado, item);
+      if (palletSettings === 200) {
+        const listaEmpaque: serverResponseType = await request_lista_empaque(socket);
+        if (listaEmpaque && listaEmpaque.status === 200) {
+          setContenedoresProvider(listaEmpaque.data);
+        } else {
+          Alert.alert(`Error obteniendo contenedores: ${listaEmpaque.data}`);
+        }
       }
-    });
-  };
-  const liberacionPallet = (item: any) => {
-    const request = {
-      data: {
-        data: {
-          contenedor: numeroContenedor,
-          pallet: palletSeleccionado,
-          item: item,
-        },
-        action: 'liberacionPallet',
-      },
-      id: socket.id,
-    };
-    socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
-      if (serverResponse.status !== 200) {
-        Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
-      } else {
-        Alert.alert('Guardado con exito');
-      }
-    });
+    } catch (e: any) {
+      Alert.alert(`Error liberando pallet ${e.status}: ${e.message}`);
+    }
   };
   const cerrarContenedor = () => {
     if (numeroContenedor === 0) {
@@ -239,7 +272,7 @@ function App(): React.JSX.Element {
     let todosVerdaderos = Object.values(contenedor?.pallets).every(pallet =>
       Object.values(pallet.listaLiberarPallet).every(val => val === true),
     );
-    // console.log(todosVerdaderos);
+
     if (todosVerdaderos) {
       const request = {
         data: {

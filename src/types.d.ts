@@ -5,11 +5,14 @@ export type LoteType ={
     tipoFruta: 'Naranja' | 'Limon' | 'Mixto';
     _id: string
     predio: string
+    status?:number
+    message?:string
   }
 
   export type serverResponseType = {
     status:number
     data:any
+    message:string
   }
 
 export type contenedoresInfoType = {

@@ -22,10 +22,8 @@ import SettingsCajasSinPalletNaranja from '../modals/SettingCajasSinPalletNaranj
 type propsType = {
   setPalletSeleccionado: (data: number) => void;
   guardarPalletSettings: (
-    nContenedor: number,
-    nPallet: number,
     settings: settingsType,
-  ) => void;
+  ) => Promise<void>;
   agregarItem: (item: itemType) => void;
   liberacionPallet: (item:any) => void
 

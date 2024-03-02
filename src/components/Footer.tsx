@@ -41,6 +41,7 @@ export default function Footer(props: propsType) {
   ).find(item => item._id === numeroContenedor);
 
   const [openModal, setOpenModal] = useState<boolean>(false);
+  // const [showEditar, setShowEditar] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [cajas, setCajas] = useState<number>(0);
   const [entradaModalPallet, setEntradaModalPallet] = useState<string>('');
@@ -147,7 +148,7 @@ export default function Footer(props: propsType) {
       if (pallet === -1) {
         const itemCaja = cajasSinPallet[Number(seleccion)];
         if (itemCaja) {
-          if (Number(entradaModalCajas) > Number(itemCaja)) {
+          if (Number(entradaModalCajas) > Number(itemCaja.cajas)) {
             return Alert.alert('Error en elnumero de cajas');
           }
         }
@@ -177,7 +178,8 @@ export default function Footer(props: propsType) {
     const item = {
       type: 'items',
       contenedor: contenedorID,
-      pallet:Number(entradaModalPallet) - 1,
+      pallet: Number(entradaModalPallet) - 1,
+      numeroCajas: 0,
     };
     props.moverItems(item);
 
@@ -188,34 +190,35 @@ export default function Footer(props: propsType) {
     return 0;
 
   };
-  // const clickRestar = () => {
-  //   if (numeroContenedor === 0) { return Alert.alert('Seleccione un contenedor'); }
-  //   if (cajas === 0) { return Alert.alert('Ingrese el numero de cajas'); }
-  //   if (seleccion === '') { Alert.alert('Seleccione el item al que desea restar cajas'); }
-  //   if (pallet === 0) {
-  //     const itemCaja = cajasSinPallet[Number(seleccion)];
-  //     if (itemCaja) {
-  //       if (Number(cajas) > Number(itemCaja.cajas)) {
-  //         return Alert.alert('Error en el numero de cajas');
-  //       }
-  //     }
-  //   } else {
-  //     const itemCaja = contenedor?.pallets[pallet].EF1.find(
-  //       item => typeof item.lote === 'object' && item.lote._id === seleccion,
-  //     )?.cajas;
-  //     if (itemCaja) {
-  //       if (Number(cajas) > itemCaja) {
-  //         return Alert.alert('Error en el numero de cajas');
-  //       }
-  //     }
-  //   }
-  //   let item;
-  //   item = {
-  //     seleccion: seleccion,
-  //     cajas: Number(cajas),
-  //   };
-  //   props.restarItem(item);
-  //   setCajas(0);
+  const clickRestar = () => {
+    if (numeroContenedor === 0) { return Alert.alert('Seleccione un contenedor'); }
+    if (cajas === 0) { return Alert.alert('Ingrese el numero de cajas'); }
+    if (seleccion.length === 0) {return  Alert.alert('Seleccione el item al que desea restar cajas'); }
+    if (seleccion.length > 1) {return Alert.alert('Seleccione solo un item'); }
+    if (pallet === -1) {
+      const itemCaja = cajasSinPallet[Number(seleccion[0])];
+      if (itemCaja) {
+        if (Number(cajas) > Number(itemCaja.cajas)) {
+          return Alert.alert('Error en el numero de cajas');
+        }
+      }
+    } else {
+      const itemCaja = contenedor?.pallets[pallet].EF1[seleccion[0]].cajas;
+      if (itemCaja) {
+        if (Number(cajas) > itemCaja) {
+          return Alert.alert('Error en el numero de cajas');
+        }
+      }
+    }
+    let item;
+    item =  Number(cajas);
+    props.restarItem(item);
+    setCajas(0);
+  };
+  //funcion para editar item, pendiente a aprobacion
+  // const ClickEditarItem = () => {
+  //   if (seleccion.length === 0) { return Alert.alert('Seleccione el item que desea editar'); }
+
   // };
 
   return (
@@ -235,17 +238,20 @@ export default function Footer(props: propsType) {
       </View>
       <View>
         <Button title="Restar"
-        // onPress={clickRestar}
+        onPress={clickRestar}
         />
       </View>
       <View>
         <Button title="Mover" onPress={ClickOpenMoverCajas} />
       </View>
+      {/* <View>
+        <Button title="Editar" onPress={ClickEditarItem} />
+      </View> */}
       <View>
         <Button title="Eliminar" onPress={clickEliminar} />
       </View>
 
-      {/* Modal */}
+      {/* Modal mover*/}
       <Modal transparent={true} visible={openModal} animationType="fade">
         <View style={styles.centerModal}>
           <View style={showCajasInput ? styles.viewModalItem : styles.viewModalItems}>

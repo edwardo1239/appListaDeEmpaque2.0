@@ -23,11 +23,7 @@ import {settingsType} from '../types';
 type modalLimonTypes = {
   openModal: boolean;
   closeModal: () => void;
-  guardarPalletSettings: (
-    nContenedor: number,
-    nPallet: number,
-    settings: settingsType,
-  ) => void;
+  guardarPalletSettings: (settings: settingsType,) => Promise<void>;
   liberacionPallet: (item:any) => void
 };
 
@@ -41,7 +37,6 @@ export default function SettingPalletLimon(props: modalLimonTypes) {
   useEffect(() => {
 
     if (pallet !== -1 && contenedor) {
-
       const infoLiberacion = contenedor.pallets[pallet].listaLiberarPallet;
 
       setRotulado(infoLiberacion.rotulado);
@@ -83,7 +78,7 @@ export default function SettingPalletLimon(props: modalLimonTypes) {
         radioButtonCalibre === 0
       )
     ) {
-      props.guardarPalletSettings(numeroContenedor, pallet, {
+      props.guardarPalletSettings({
         tipoCaja: radioButtonTipoCaja,
         calidad: radioButtonCalidad,
         calibre: radioButtonCalibre,

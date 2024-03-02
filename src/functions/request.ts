@@ -26,10 +26,14 @@ export const request_lista_empaque = async (socket: Socket): Promise<serverRespo
     return new Promise((resolve, reject) => {
         try {
             socket.emit('listaEmpaque', {data: requestContenedores}, (serverResponse: serverResponseType) => {
+              if (serverResponse.status === 200){
                 resolve(serverResponse);
+              } else {
+                reject({status:serverResponse.status, message:serverResponse.message});
+              }
             });
         } catch (e) {
-            reject('Error obteniendo los datos');
+            reject(`Error obteniendo los datos de las lista de empaque ${e}`);
         }
     });
 };
@@ -48,15 +52,14 @@ export const guardar_pallets_settings = async (socket: Socket, idContenedor: num
       },
     };
     return new Promise((resolve, reject) => {
-      try {
-          socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
-              resolve(serverResponse.status);
-          });
-      } catch (e) {
-          reject(401);
-      }
+      socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+        if (serverResponse.status === 200){
+          resolve(serverResponse.status);
+        } else {
+          reject(serverResponse);
+        }
+    });
   });
-
 };
 
 export const agregar_item = async (socket: Socket, item: itemType, numeroContenedor:number, palletSeleccionado:number ): Promise<number> => {
@@ -87,7 +90,11 @@ export const agregar_item = async (socket: Socket, item: itemType, numeroContene
   return new Promise((resolve, reject) => {
     try {
         socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+          if (serverResponse.status === 200){
             resolve(serverResponse.status);
+          } else {
+            reject(serverResponse);
+          }
         });
     } catch (e) {
         reject(401);
@@ -100,7 +107,6 @@ export const eliminar_item = async (socket: Socket, numeroContenedor:number, pal
   if (palletSeleccionado === -1){
     element = 'eliminatItemSinPallet';
   }
-
   const request: any = {
     query: 'proceso',
     collection: 'contenedores',
@@ -114,23 +120,31 @@ export const eliminar_item = async (socket: Socket, numeroContenedor:number, pal
     },
   };
   return new Promise((resolve, reject) => {
-    try {
         socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+          if (serverResponse.status === 200){
             resolve(serverResponse.status);
+          } else {
+            reject(serverResponse);
+          }
         });
-    } catch (e) {
-        reject(401);
-    }
 });
 };
 
 export const mover_item = async (socket: Socket, item:any, numeroContenedor: number, palletSeleccionado:number, seleccion:number[]) => {
   let action;
-  // console.log(numeroContenedor);
-  // console.log(palletSeleccionado);
   //Request para mover un item desde un pallet contenedor a otro pallet contenedor
   if (item.type === 'item' && palletSeleccionado !== -1 && item.pallet !== -1 && item.contenedor !== -1){
     action = 'moverItemEntreContenedores';
+  } else if (item.type === 'items' && palletSeleccionado !== -1 && item.pallet !== -1 && item.contenedor !== -1 ){
+    action = 'moverItemsEntreContenedores';
+  } else if ( item.type === 'item' && palletSeleccionado === -1 && item.pallet !== -1 && item.contenedor !== -1){
+    action = 'moverItemSinPalletaContenedor';
+  } else if ( item.type === 'items' && palletSeleccionado === -1 && item.pallet !== -1 && item.contenedor !== -1){
+    action = 'moverItemsSinPalletaContenedor';
+  } else if ( item.type === 'item' && palletSeleccionado !== -1 && item.pallet === -1 && item.contenedor === -1){
+    action = 'moverItemContenedorSinPalleta';
+  } else if ( item.type === 'items' && palletSeleccionado !== -1 && item.pallet === -1 && item.contenedor === -1){
+    action = 'moverItemsContenedorSinPalleta';
   } else {
     action = '';
   }
@@ -141,25 +155,81 @@ export const mover_item = async (socket: Socket, item:any, numeroContenedor: num
     data: {
       contenedor1: {
         _id: numeroContenedor,
-        index: seleccion[0],
+        index: seleccion,
         pallet: palletSeleccionado,
       },
       contenedor2: {
         _id: item.contenedor,
         pallet: item.pallet,
-        cajas: item.numeroCajas,
       },
+      cajas: item.numeroCajas,
     },
   };
   console.log(request);
 
   return new Promise((resolve, reject) => {
-    try {
         socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+          if (serverResponse.status === 200){
             resolve(serverResponse.status);
+          }
+          else {
+            reject(serverResponse);
+          }
         });
-    } catch (e) {
-        reject(401);
-    }
+
+});
+};
+
+export const restar_item = async (socket: Socket, item: any, numeroContenedor: number, palletSeleccionado: number, seleccion: number[]) => {
+  const request: any = {
+    query: 'proceso',
+    collection: 'contenedores',
+    action: 'restarItem',
+    data: {
+      contenedor: {
+        _id: numeroContenedor,
+        item: seleccion[0],
+        pallet: palletSeleccionado,
+        cajas: item,
+      },
+    },
+  };
+  return new Promise((resolve, reject) => {
+        socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+          console.log(serverResponse);
+          if (serverResponse.status === 200){
+            resolve(serverResponse.status);
+          } else if (serverResponse == null){
+            reject('Error: null response');
+          }
+          else {
+            reject(serverResponse);
+          }
+        });
+
+});
+};
+
+export const liberacion_pallet = async (socket: Socket, idContenedor: number, nPallet: number, item: any): Promise<number> => {
+  const request: any = {
+    query: 'proceso',
+    collection: 'contenedores',
+    action: 'liberarPallet',
+    data: {
+      contenedor: {
+        _id: idContenedor,
+        pallet: nPallet,
+        item: item,
+      },
+    },
+  };
+  return new Promise((resolve, reject) => {
+    socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+      if (serverResponse.status === 200){
+        resolve(serverResponse.status);
+      } else {
+        reject(serverResponse);
+      }
+  });
 });
 };
