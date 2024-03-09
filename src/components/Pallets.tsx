@@ -18,6 +18,7 @@ import SettingsEstibaNaranja from '../modals/SettingEstibaNaranja';
 import SettingsEstibaLimon from '../modals/SettingEstibaLimon';
 import SettingSacosSinEstibaLimon from '../modals/SettingSacoSinEstibaLimon';
 import SettingsCajasSinPalletNaranja from '../modals/SettingCajasSinPalletNaranja';
+import SettingSacosSinEstibaNaranja from '../modals/SettingSacoSinEstibaNaranja';
 
 type propsType = {
   setPalletSeleccionado: (data: number) => void;
@@ -139,7 +140,7 @@ export default function Pallets(props: propsType) {
       agregarItem={props.agregarItem}
     />
     :
-    <SettingSacosSinEstibaLimon
+    <SettingSacosSinEstibaNaranja
     openModalSinPallet={openModalSinPallet}
     setOpenModalSinPallet={setOpenModalSinPallet}
     agregarItem={props.agregarItem}

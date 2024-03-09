@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, {useContext, useState} from 'react';
 import {
   View,
@@ -9,65 +10,52 @@ import {
   Alert,
   TextInput,
   NativeSyntheticEvent,
-  TextInputChangeEventData
+  TextInputChangeEventData,
 } from 'react-native';
 import {
-    contenedorSeleccionadoContext,
-    contenedoresContext,
-    loteSeleccionadoContext,
-    palletSeleccionadoContext,
-  } from '../../App';
-  import {itemType} from '../types';
-  
-  type modalTypes = {
-    openModalSinPallet: boolean;
-    setOpenModalSinPallet: (data: boolean) => void;
-    agregarItem: (item: itemType) => void;
-  };
-export default function SettingSacosSinEstibaLimon(props: modalTypes) {
+  loteSeleccionadoContext,
+} from '../../App';
+import {itemType} from '../types';
 
-    const loteSeleccionado = useContext(loteSeleccionadoContext);
-    const numeroContenedor = useContext(contenedorSeleccionadoContext);
-    const contenedor = useContext(contenedoresContext).find(
-      item => item._id === numeroContenedor,
-    );
-    const pallet = useContext(palletSeleccionadoContext);
+type modalTypes = {
+  openModalSinPallet: boolean;
+  setOpenModalSinPallet: (data:boolean) => void;
+  agregarItem: (item:itemType) => void
+};
+
+
+export default function SettingSacosSinEstibaNaranja(props: modalTypes) {
+  const loteSeleccionado = useContext(loteSeleccionadoContext);
 
   const [radioButtonTipoCaja, setRadioButtonTipoCaja] = useState<string>('');
   const [radioButtonCalidad, setRadioButtonCalidad] = useState<number>(0);
   const [radioButtonCalibre, setRadioButtonCalibre] = useState<number>(0);
-  const [cajas, setCajas] = useState<string>('')
+  const [cajas, setCajas] = useState<string>('');
 
-  const getInput = (
-    e: NativeSyntheticEvent<TextInputChangeEventData>,
-  ): void => {
-
+  const getInput = (e: NativeSyntheticEvent<TextInputChangeEventData>): void => {
     setCajas(e.nativeEvent.text);
   };
 
   const clickGuardar = (): void => {
-    if (loteSeleccionado.enf === '')
+    if (loteSeleccionado._id === '') {
       return Alert.alert('No ha seleccionado predio');
+    }
     if (cajas !== '') {
       if (
-        !(
-          radioButtonTipoCaja == '' ||
-          radioButtonCalidad == 0 ||
-          radioButtonCalibre == 0 ||
-          loteSeleccionado.enf == ''
-        )
+        !(radioButtonTipoCaja === '' ||
+          radioButtonCalidad === 0 ||
+          radioButtonCalibre === 0 ||
+          loteSeleccionado._id === '')
       ) {
-
         const item: itemType = {
-            id: loteSeleccionado.enf,
-            nombre: loteSeleccionado.nombreLote,
-            cajas: Number(cajas),
-            tipoCaja: radioButtonTipoCaja,
-            calibre: Number(radioButtonCalibre),
-            calidad: Number(radioButtonCalidad),
-            fecha: new Date(),
-          };
-        props.agregarItem(item)
+          _id: loteSeleccionado._id,
+          cajas: Number(cajas),
+          tipoCaja: radioButtonTipoCaja,
+          calibre: Number(radioButtonCalibre),
+          calidad: Number(radioButtonCalidad),
+          fecha: new Date(),
+        };
+        props.agregarItem(item);
 
         setCajas('');
         setRadioButtonTipoCaja('');
@@ -77,65 +65,50 @@ export default function SettingSacosSinEstibaLimon(props: modalTypes) {
       } else {
         Alert.alert('No ha seleccionado ninguna configuracion');
       }
-    } else Alert.alert('Ingrese las cajas');
+    } else {
+      Alert.alert('Ingrese las cajas');
+    }
   };
 
   return (
-    <Modal
-      transparent={true}
-      visible={props.openModalSinPallet}
-      animationType="fade">
+    <Modal transparent={true} visible={props.openModalSinPallet} animationType="fade">
       <View style={styles.centerModal}>
         <View style={styles.viewModal}>
           <View style={styles.modal}>
             <Text style={styles.tituloModal}>Configurar Saco sin estiba</Text>
             <View style={styles.containerConfigurarPallet}>
               <Text>Tipo de Saco</Text>
-              <View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
-                <TouchableOpacity
-                  onPress={() => setRadioButtonTipoCaja('Rojo')}>
+              <View style={styles.viewStyles1}>
+                <TouchableOpacity onPress={() => setRadioButtonTipoCaja('Zumex')}>
                   <View style={styles.radioButton}>
                     <View style={styles.radio}>
-                      {radioButtonTipoCaja == 'Rojo' ? (
-                        <View style={styles.radioBg}></View>
-                      ) : null}
+                      {radioButtonTipoCaja === 'Zumex' ? <View style={styles.radioBg} /> : null}
                     </View>
-                    <Text>Rojo</Text>
+                    <Text>Zumex</Text>
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setRadioButtonTipoCaja('Verde')}>
+                <TouchableOpacity onPress={() => setRadioButtonTipoCaja('Granel')}>
                   <View style={styles.radioButton}>
                     <View style={styles.radio}>
-                      {radioButtonTipoCaja == 'Verde' ? (
-                        <View style={styles.radioBg}></View>
-                      ) : null}
+                      {radioButtonTipoCaja === 'Granel' ? <View style={styles.radioBg} /> : null}
                     </View>
-                    <Text>Verde</Text>
+                    <Text>Granel</Text>
                   </View>
                 </TouchableOpacity>
               </View>
             </View>
             <View style={styles.containerConfigurarPallet}>
               <Text>Calidad</Text>
-              <View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
+              <View style={styles.viewStyles1}>
                 <TouchableOpacity onPress={() => setRadioButtonCalidad(1)}>
                   <View style={styles.radioButton}>
-                    <View style={styles.radio}>
-                      {radioButtonCalidad == 1 ? (
-                        <View style={styles.radioBg}></View>
-                      ) : null}
-                    </View>
+                    <View style={styles.radio}>{radioButtonCalidad === 1 ? <View style={styles.radioBg} /> : null}</View>
                     <Text>1</Text>
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setRadioButtonCalidad(2)}>
                   <View style={styles.radioButton}>
-                    <View style={styles.radio}>
-                      {radioButtonCalidad == 2 ? (
-                        <View style={styles.radioBg}></View>
-                      ) : null}
-                    </View>
+                    <View style={styles.radio}>{radioButtonCalidad === 2 ? <View style={styles.radioBg} /> : null}</View>
                     <Text>2</Text>
                   </View>
                 </TouchableOpacity>
@@ -144,26 +117,25 @@ export default function SettingSacosSinEstibaLimon(props: modalTypes) {
             <View style={styles.containerConfigurarPallet}>
               <Text>Calibre</Text>
               <View style={styles.inputText}>
-                  <TextInput keyboardType='numeric' value={String(radioButtonCalibre)} onChange={(e) => setRadioButtonCalibre(Number(e.nativeEvent.text))}></TextInput>
-                </View>
+                <TextInput
+                  keyboardType="numeric"
+                  value={String(radioButtonCalibre)}
+                  onChange={e => setRadioButtonCalibre(Number(e.nativeEvent.text))}
+                />
+              </View>
             </View>
-       
           </View>
           <View style={styles.modalCajas}>
             <View style={styles.modal}>
-              <Text style={styles.tituloModal}>
-                Ingresar el numero de sacos{' '}
-              </Text>
+              <Text style={styles.tituloModal}>Ingresar el numero de sacos </Text>
             </View>
-            <View style={{marginLeft:15,marginTop:20}}>
-              <TextInput style={styles.inputCajas} onChange={(e) => getInput(e)} keyboardType="numeric" value={cajas}></TextInput>
+            <View style={styles.styleIngresarSacos}>
+              <TextInput style={styles.inputCajas} onChange={e => getInput(e)} keyboardType="numeric" value={cajas} />
             </View>
-            <View style={{display:'flex',flexDirection:'row',gap:15,marginTop:40,justifyContent:'center',marginRight:45}}>
+            <View
+              style={styles.botonesStyles}>
               <Button title="Guardar" onPress={clickGuardar} />
-              <Button
-                title="Cancelar"
-                onPress={() => props.setOpenModalSinPallet(false)}
-              />
+              <Button title="Cancelar" onPress={() => props.setOpenModalSinPallet(false)} />
             </View>
           </View>
         </View>
@@ -203,9 +175,19 @@ const styles = StyleSheet.create({
   tituloModal: {
     fontSize: 20,
     fontWeight: 'bold',
-    display:'flex',
-    justifyContent:'center',
-    marginLeft:10
+    display: 'flex',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  viewStyles1:{display: 'flex', flexDirection: 'row', gap: 20},
+  styleIngresarSacos:{marginLeft: 15, marginTop: 20},
+  botonesStyles:{
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 15,
+    marginTop: 40,
+    justifyContent: 'center',
+    marginRight: 45,
   },
   containerConfigurarPallet: {
     display: 'flex',
@@ -252,17 +234,17 @@ const styles = StyleSheet.create({
   inputCajas: {
     borderWidth: 1,
     borderRadius: 15,
-    width:'80%'
+    width: '80%',
   },
-  modalCajas:{
-    display:'flex',
-    flexDirection:'column',
-    justifyContent:'center',
-    alignContent:'center'
+  modalCajas: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignContent: 'center',
   },
-  inputText:{
-    backgroundColor:'#E2F0FF',
-    borderRadius:15,
-    marginBottom:5
-  }
+  inputText: {
+    backgroundColor: '#E2F0FF',
+    borderRadius: 15,
+    marginBottom: 5,
+  },
 });

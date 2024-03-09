@@ -90,7 +90,7 @@ function Informacion(props: propsType) {
         </ScrollView>
       ) : (
         <ScrollView style={styles.scrollStyle} nestedScrollEnabled={true}>
-          {contenedor && (pallet !== -1) === true
+          {contenedor && (pallet !== -1)
             ? contenedor.pallets[pallet].EF1.map((item, index) => (
               typeof item.lote === 'object' &&
               <View style={styles.container} key={index + index}>

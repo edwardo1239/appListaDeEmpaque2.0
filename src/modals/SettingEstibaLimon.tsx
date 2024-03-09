@@ -16,13 +16,9 @@ import { settingsType } from '../types';
 
 
 type modalLimonTypes = {
-    openModal: boolean;
-    closeModal: () => void;
-    guardarPalletSettings: (
-      nContenedor: number,
-      nPallet: number,
-      settings: settingsType,
-    ) => void;
+  openModal: boolean;
+  closeModal: () => void;
+  guardarPalletSettings: ( settings: settingsType) => Promise<void>;
   liberacionPallet: (item:any) => void
 
 };
@@ -81,7 +77,7 @@ export default function SettingsEstibaLimon(props: modalLimonTypes) {
         radioButtonCalibre === 0
       )
     ) {
-      props.guardarPalletSettings(numeroContenedor, pallet, {
+      props.guardarPalletSettings({
         tipoCaja: radioButtonTipoCaja,
         calidad: radioButtonCalidad,
         calibre: radioButtonCalibre,

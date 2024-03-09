@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
@@ -13,34 +14,30 @@ import { settingsType } from '../types';
 import { contenedorSeleccionadoContext, contenedoresContext, loteSeleccionadoContext, palletSeleccionadoContext } from '../../App';
 
 type modalLimonTypes = {
-    openModal: boolean;
-    closeModal: () => void;
-    guardarPalletSettings: (
-      nContenedor: number,
-      nPallet: number,
-      settings: settingsType,
-    ) => void;
+  openModal: boolean;
+  closeModal: () => void;
+  guardarPalletSettings: ( settings: settingsType) => Promise<void>;
   liberacionPallet: (item:any) => void
-
 };
 
 export default function SettingsEstibaNaranja(props: modalLimonTypes) {
-    const pallet = useContext(palletSeleccionadoContext)
-    const numeroContenedor = useContext(contenedorSeleccionadoContext)
-    const contenedores = useContext(contenedoresContext)
-    const contenedor = contenedores.find(item => item._id === numeroContenedor)
-    const loteSeleccionado = useContext(loteSeleccionadoContext)
-    
+    const pallet = useContext(palletSeleccionadoContext);
+    const numeroContenedor = useContext(contenedorSeleccionadoContext);
+    const contenedores = useContext(contenedoresContext);
+    const contenedor = contenedores.find(item => item._id === numeroContenedor);
+    const loteSeleccionado = useContext(loteSeleccionadoContext);
+
   useEffect(() => {
-    if (pallet !== 0 && contenedor) {
-  
+    if (pallet !== -1 && contenedor) {
+
         const infoLiberacion = contenedor.pallets[pallet].listaLiberarPallet;
-  
+
+
         setRotulado(infoLiberacion.rotulado);
-        setPaletizado(infoLiberacion['paletizado']);
-        setEnzunchado(infoLiberacion['enzunchado']);
-        setEstadoCajas(infoLiberacion['estadoCajas']);
-        setEstiba(infoLiberacion['pallet']);
+        setPaletizado(infoLiberacion.paletizado);
+        setEnzunchado(infoLiberacion.enzunchado);
+        setEstadoCajas(infoLiberacion.estadoCajas);
+        setEstiba(infoLiberacion.pallet);
       } else {
         setRotulado(false);
         setPaletizado(false);
@@ -48,7 +45,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
         setEstadoCajas(false);
         setEstiba(false);
       }
-    }, [props.openModal]);
+    }, [props.openModal, contenedor, pallet]);
 
 
   const [radioButtonTipoCaja, setRadioButtonTipoCaja] = useState<string>('');
@@ -71,12 +68,12 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
     }
     if (
       !(
-        radioButtonTipoCaja == '' &&
-        radioButtonCalidad == 0 &&
-        radioButtonCalibre == 0
+        radioButtonTipoCaja === '' &&
+        radioButtonCalidad === 0 &&
+        radioButtonCalibre === 0
       )
     ) {
-      props.guardarPalletSettings(numeroContenedor, pallet, {
+      props.guardarPalletSettings({
         tipoCaja: radioButtonTipoCaja,
         calidad: radioButtonCalidad,
         calibre: radioButtonCalibre,
@@ -84,10 +81,10 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
     } else {
       Alert.alert('No ha seleccionado ninguna configuracion');
     }
-    props.closeModal()
-    setRadioButtonCalibre(0)
-    setRadioButtonTipoCaja('')
-    setRadioButtonCalidad(0)
+    props.closeModal();
+    setRadioButtonCalibre(0);
+    setRadioButtonTipoCaja('');
+    setRadioButtonCalidad(0);
 
   };
   const clickGuardarLiberacion = (): void => {
@@ -97,18 +94,18 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
       paletizado:paletizado,
       enzunchado:enzunchado,
       estadoCajas: estadoCajas,
-      estiba:estiba
-    }
+      estiba:estiba,
+    };
 
-    props.liberacionPallet(item)
-  
+    props.liberacionPallet(item);
+
     setRotulado(false);
     setPaletizado(false);
     setEnzunchado(false);
     setEstadoCajas(false);
     setEstiba(false);
 
-    props.closeModal()
+    props.closeModal();
 
   };
 
@@ -125,8 +122,8 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
                   onPress={() => setRadioButtonTipoCaja('Zumex')}>
                   <View style={styles.radioButton}>
                     <View style={styles.radio}>
-                      {radioButtonTipoCaja == 'Zumex' ? (
-                        <View style={styles.radioBg}></View>
+                      {radioButtonTipoCaja === 'Zumex' ? (
+                        <View style={styles.radioBg} />
                       ) : null}
                     </View>
                     <Text>Zumex</Text>
@@ -136,8 +133,8 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
                   onPress={() => setRadioButtonTipoCaja('Granel')}>
                   <View style={styles.radioButton}>
                     <View style={styles.radio}>
-                      {radioButtonTipoCaja == 'Granel' ? (
-                        <View style={styles.radioBg}></View>
+                      {radioButtonTipoCaja === 'Granel' ? (
+                        <View style={styles.radioBg} />
                       ) : null}
                     </View>
                     <Text>Granel</Text>
@@ -147,12 +144,12 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
             </View>
             <View style={styles.containerConfigurarPallet}>
               <Text>Calidad</Text>
-              <View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
+              <View style={styles.viewCalidad}>
                 <TouchableOpacity onPress={() => setRadioButtonCalidad(1)}>
                   <View style={styles.radioButton}>
                     <View style={styles.radio}>
-                      {radioButtonCalidad == 1 ? (
-                        <View style={styles.radioBg}></View>
+                      {radioButtonCalidad === 1 ? (
+                        <View style={styles.radioBg} />
                       ) : null}
                     </View>
                     <Text>1</Text>
@@ -161,8 +158,8 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
                 <TouchableOpacity onPress={() => setRadioButtonCalidad(2)}>
                   <View style={styles.radioButton}>
                     <View style={styles.radio}>
-                      {radioButtonCalidad == 2 ? (
-                        <View style={styles.radioBg}></View>
+                      {radioButtonCalidad === 2 ? (
+                        <View style={styles.radioBg} />
                       ) : null}
                     </View>
                     <Text>2</Text>
@@ -172,11 +169,11 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
             </View>
             <View style={styles.containerConfigurarPallet}>
               <Text>Calibre</Text>
-           
+
                 <View style={styles.inputText}>
-                  <TextInput keyboardType='numeric' value={String(radioButtonCalibre)} onChange={(e) => setRadioButtonCalibre(Number(e.nativeEvent.text))}></TextInput>
+                  <TextInput keyboardType="numeric" value={String(radioButtonCalibre)} onChange={(e) => setRadioButtonCalibre(Number(e.nativeEvent.text))} />
                 </View>
-              
+
             </View>
             <View style={styles.containerButtonsModal}>
               <Button title="Guardar" onPress={clickGuardar} />
@@ -195,7 +192,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
               <TouchableOpacity onPress={() => setRotulado(!rotulado)}>
                 <View style={styles.radioButton}>
                   <View style={styles.radio}>
-                    {rotulado ? <View style={styles.radioBg}></View> : null}
+                    {rotulado ? <View style={styles.radioBg} /> : null}
                   </View>
                   <Text>Rotulado</Text>
                 </View>
@@ -203,7 +200,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
               <TouchableOpacity onPress={() => setPaletizado(!paletizado)}>
                 <View style={styles.radioButton}>
                   <View style={styles.radio}>
-                    {paletizado ? <View style={styles.radioBg}></View> : null}
+                    {paletizado ? <View style={styles.radioBg} /> : null}
                   </View>
                   <Text>Paletizado</Text>
                 </View>
@@ -211,7 +208,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
               <TouchableOpacity onPress={() => setEnzunchado(!enzunchado)}>
                 <View style={styles.radioButton}>
                   <View style={styles.radio}>
-                    {enzunchado ? <View style={styles.radioBg}></View> : null}
+                    {enzunchado ? <View style={styles.radioBg} /> : null}
                   </View>
                   <Text>Enzunchado</Text>
                 </View>
@@ -219,7 +216,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
               <TouchableOpacity onPress={() => setEstadoCajas(!estadoCajas)}>
                 <View style={styles.radioButton}>
                   <View style={styles.radio}>
-                    {estadoCajas ? <View style={styles.radioBg}></View> : null}
+                    {estadoCajas ? <View style={styles.radioBg} /> : null}
                   </View>
                   <Text>Estado cajas</Text>
                 </View>
@@ -227,7 +224,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
               <TouchableOpacity onPress={() => setEstiba(!estiba)}>
                 <View style={styles.radioButton}>
                   <View style={styles.radio}>
-                    {estiba ? <View style={styles.radioBg}></View> : null}
+                    {estiba ? <View style={styles.radioBg} /> : null}
                   </View>
                   <Text>Estiba tipo exportación</Text>
                 </View>
@@ -239,7 +236,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
                 title="Cancelar"
                 onPress={props.closeModal}
               />
-     
+
             </View>
           </View>
         </View>
@@ -280,6 +277,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  viewCalidad: {display: 'flex', flexDirection: 'row', gap: 20},
   containerConfigurarPallet: {
     display: 'flex',
     flexDirection: 'column',
@@ -337,6 +335,6 @@ const styles = StyleSheet.create({
   inputText:{
     backgroundColor:'#E2F0FF',
     borderRadius:15,
-    marginBottom:5
-  }
+    marginBottom:5,
+  },
 });

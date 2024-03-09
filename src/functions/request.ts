@@ -121,6 +121,8 @@ export const eliminar_item = async (socket: Socket, numeroContenedor:number, pal
   };
   return new Promise((resolve, reject) => {
         socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+          console.log(serverResponse);
+
           if (serverResponse.status === 200){
             resolve(serverResponse.status);
           } else {
