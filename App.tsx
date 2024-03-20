@@ -27,7 +27,7 @@ import {
   agregar_item, eliminar_item, guardar_pallets_settings, liberacion_pallet, mover_item, request_lista_empaque, restar_item,
 } from './src/functions/request';
 
-const socket = io('http://192.168.0.172:3004/');
+const socket = io('http://192.168.0.172:3003/');
 
 export const contenedoresContext = createContext<contenedoresInfoType[]>([
   {
