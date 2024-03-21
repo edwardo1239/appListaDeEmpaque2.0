@@ -24,7 +24,7 @@ import Footer from './src/components/Footer';
 import Informacion from './src/components/Informacion';
 import PushNotification from 'react-native-push-notification';
 import {
-  agregar_item, eliminar_item, guardar_pallets_settings, liberacion_pallet, mover_item, request_lista_empaque, restar_item,
+  agregar_item, cerrar_contenedor, eliminar_item, guardar_pallets_settings, liberacion_pallet, mover_item, request_lista_empaque, restar_item,
 } from './src/functions/request';
 
 const socket = io('http://192.168.0.172:3003/');
@@ -117,8 +117,8 @@ function App(): React.JSX.Element {
           } else {
             throw new Error(`Error obteniendo contenedores: ${listaEmpaque.data}`);
           }
-        } catch (e:unknown) {
-          if (e instanceof Error){
+        } catch (e: unknown) {
+          if (e instanceof Error) {
             Alert.alert(`${e.message}`);
           }
         }
@@ -126,8 +126,8 @@ function App(): React.JSX.Element {
       socket.on('cajasSinPallet', async () => {
         try {
           await obtener_cajas_sin_pallet();
-        } catch (e:unknown) {
-          if (e instanceof Error){
+        } catch (e: unknown) {
+          if (e instanceof Error) {
             Alert.alert(`${e.message}`);
           }
         }
@@ -201,8 +201,8 @@ function App(): React.JSX.Element {
     try {
       const palletSettings = await guardar_pallets_settings(socket, numeroContenedor, palletSeleccionado, settings);
       if (palletSettings === 200) {
-          Alert.alert('Guardado con exito');
-        }
+        Alert.alert('Guardado con exito');
+      }
     } catch (e: any) {
       Alert.alert(`Error guardando la configuracion de pallet ${e.status}: ${e.message}`);
     }
@@ -258,8 +258,8 @@ function App(): React.JSX.Element {
       Alert.alert(`Error liberando pallet ${e.status}: ${e.message}`);
     }
   };
-  const cerrarContenedor = () => {
-    if (numeroContenedor === 0) {
+  const cerrarContenedor = async () => {
+    if (numeroContenedor === -1) {
       return Alert.alert('Seleccione un contenedor');
     }
     const contenedor = contenedoresProvider.find(item => item._id === numeroContenedor);
@@ -270,26 +270,14 @@ function App(): React.JSX.Element {
     let todosVerdaderos = Object.values(contenedor?.pallets).every(pallet =>
       Object.values(pallet.listaLiberarPallet).every(val => val === true),
     );
+    if (!todosVerdaderos) {
+      return Alert.alert('Debe liberar todos los pallets');
+    }
 
-    if (todosVerdaderos) {
-      const request = {
-        data: {
-          data: {
-            contenedor: numeroContenedor,
-          },
-          action: 'cerrarContenedor',
-        },
-        id: socket.id,
-      };
-      socket.emit('listaDeEmpaque', request, (serverResponse: serverResponseType) => {
-        if (serverResponse.status !== 200) {
-          Alert.alert(`Error al guardar los datos: ${serverResponse.data}`);
-        } else {
-          Alert.alert('Guardado con exito');
-        }
-      });
-    } else {
-      Alert.alert('Debe liberar todos los pallets');
+    try {
+      await cerrar_contenedor(socket, numeroContenedor);
+    } catch (e: any) {
+      Alert.alert(`Error liberando pallet ${e.status}: ${e.message}`);
     }
   };
   const seleccionarLote = (item: LoteType): void => {

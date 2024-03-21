@@ -235,3 +235,25 @@ export const liberacion_pallet = async (socket: Socket, idContenedor: number, nP
   });
 });
 };
+
+export const cerrar_contenedor = async (socket: Socket, idContenedor: number) => {
+  const request: any = {
+    query: 'proceso',
+    collection: 'contenedores',
+    action: 'cerrarContenedor',
+    data: {
+      contenedor: {
+        _id: idContenedor,
+      },
+    },
+  };
+  return new Promise((resolve, reject) => {
+    socket.emit('listaEmpaque', {data: request}, (serverResponse: serverResponseType) => {
+      if (serverResponse.status === 200){
+        resolve(serverResponse.status);
+      } else {
+        reject(serverResponse);
+      }
+  });
+});
+};
