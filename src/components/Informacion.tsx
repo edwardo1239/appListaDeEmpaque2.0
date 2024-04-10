@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
     padding: 5,
     elevation: 10,
     shadowColor: '#52006A',
+    flex: 1,
   },
   container: {
     margin: 5,

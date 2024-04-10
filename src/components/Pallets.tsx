@@ -2,7 +2,7 @@
 
 /* eslint-disable react-native/no-inline-styles */
 import React, {useContext, useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import {
   contenedorSeleccionadoContext,
   contenedoresContext,
@@ -67,7 +67,8 @@ export default function Pallets(props: propsType) {
     setOpenModal(false);
   };
   return (
-    <View
+  <ScrollView>
+      <View
       style={
         numeroContenedor === -1 ? {minHeight: 525, width: 925} : styles.container
       }>
@@ -147,6 +148,7 @@ export default function Pallets(props: propsType) {
   />
     }
     </View>
+  </ScrollView>
   );
 }
 

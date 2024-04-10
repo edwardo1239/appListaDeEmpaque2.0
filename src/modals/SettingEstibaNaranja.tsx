@@ -9,6 +9,8 @@ import {
   Button,
   Alert,
   TextInput,
+  NativeSyntheticEvent,
+  TextInputChangeEventData,
 } from 'react-native';
 import { settingsType } from '../types';
 import { contenedorSeleccionadoContext, contenedoresContext, loteSeleccionadoContext, palletSeleccionadoContext } from '../../App';
@@ -109,6 +111,14 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
 
   };
 
+  const handleCalibre = (e:NativeSyntheticEvent<TextInputChangeEventData>): void => {
+    if (isNaN(Number(e.nativeEvent.text))){
+      setRadioButtonCalibre(0);
+    } else {
+    setRadioButtonCalibre(Number(e.nativeEvent.text));
+    }
+  };
+
   return (
     <Modal transparent={true} visible={props.openModal} animationType="fade">
       <View style={styles.centerModal}>
@@ -171,7 +181,7 @@ export default function SettingsEstibaNaranja(props: modalLimonTypes) {
               <Text>Calibre</Text>
 
                 <View style={styles.inputText}>
-                  <TextInput keyboardType="numeric" value={String(radioButtonCalibre)} onChange={(e) => setRadioButtonCalibre(Number(e.nativeEvent.text))} />
+                  <TextInput keyboardType="numeric" value={String(radioButtonCalibre)} onChange={handleCalibre} />
                 </View>
 
             </View>

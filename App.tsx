@@ -8,7 +8,7 @@
  */
 
 import React, { createContext, useEffect, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, SafeAreaView, StyleSheet, View } from 'react-native';
 import { io } from 'socket.io-client';
 import {
   LoteType,
@@ -285,22 +285,22 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <ScrollView>
-      <SafeAreaView style={styles.container}>
-        <contenedoresContext.Provider value={contenedoresProvider}>
-          <loteSeleccionadoContext.Provider value={loteSeleccionado}>
-            <contenedorSeleccionadoContext.Provider value={numeroContenedor}>
-              <palletSeleccionadoContext.Provider value={palletSeleccionado}>
-                <itemSeleccionContext.Provider value={seleccion}>
-                  <cajasSinPalletContext.Provider value={cajasSinPallet}>
+
+    <contenedoresContext.Provider value={contenedoresProvider}>
+      <loteSeleccionadoContext.Provider value={loteSeleccionado}>
+        <contenedorSeleccionadoContext.Provider value={numeroContenedor}>
+          <palletSeleccionadoContext.Provider value={palletSeleccionado}>
+            <itemSeleccionContext.Provider value={seleccion}>
+              <cajasSinPalletContext.Provider value={cajasSinPallet}>
+                <SafeAreaView style={styles.container}>
                     <Header
                       setNumeroContenedor={setNumeroContenedor}
                       loteVaciando={loteVaciando}
                       cerrarContenedor={cerrarContenedor}
                       seleccionarLote={seleccionarLote}
                     />
-                    <View style={styles.viewPallets}>
-                      <View>
+                    <View style={styles.palletsInfoContainer}>
+                      <View style={styles.viewPallets}>
                         <Pallets
                           setPalletSeleccionado={setPalletSeleccionado}
                           guardarPalletSettings={guardarPalletSettings}
@@ -308,7 +308,7 @@ function App(): React.JSX.Element {
                           liberacionPallet={liberacionPallet}
                         />
                       </View>
-                      <View style={{ height: 600, minWidth: 400 }}>
+                      <View style={{ minWidth: 400}}>
                         <Informacion setSeleccion={setSeleccion} />
                       </View>
                     </View>
@@ -318,24 +318,30 @@ function App(): React.JSX.Element {
                       moverItems={moverItems}
                       restarItem={restarItem}
                     />
-                  </cajasSinPalletContext.Provider>
-                </itemSeleccionContext.Provider>
-              </palletSeleccionadoContext.Provider>
-            </contenedorSeleccionadoContext.Provider>
-          </loteSeleccionadoContext.Provider>
-        </contenedoresContext.Provider>
-      </SafeAreaView>
-    </ScrollView>
+                </SafeAreaView>
+              </cajasSinPalletContext.Provider>
+            </itemSeleccionContext.Provider>
+          </palletSeleccionadoContext.Provider>
+        </contenedorSeleccionadoContext.Provider>
+      </loteSeleccionadoContext.Provider>
+    </contenedoresContext.Provider>
+
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#719DF5',
+    flex: 1,
   },
-  viewPallets: {
+  palletsInfoContainer:{
     display: 'flex',
     flexDirection: 'row',
+    flex:1,
+    minHeight:550,
+  },
+  viewPallets: {
+
   },
 });
 
